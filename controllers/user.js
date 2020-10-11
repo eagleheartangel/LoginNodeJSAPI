@@ -18,18 +18,24 @@ const controller = {
     // Recoger los parametros de la peticion
     const params = peticion.body;
     // Validar los datos
-    const validate_name = !validator.isEmpty(params.name);
-    const validate_surname = !validator.isEmpty(params.surname);
-    const validate_email =
-      !validator.isEmpty(params.email) && validator.isEmail(params.email);
-    const validate_password = !validator.isEmpty(params.password);
+    try {
+      const validate_name = !validator.isEmpty(params.name);
+      const validate_surname = !validator.isEmpty(params.surname);
+      const validate_email =
+        !validator.isEmpty(params.email) && validator.isEmail(params.email);
+      const validate_password = !validator.isEmpty(params.password);
 
-    // console.log(
-    //   validate_email,
-    //   validate_name,
-    //   validate_surname,
-    //   validate_password
-    // );
+      // console.log(
+      //   validate_email,
+      //   validate_name,
+      //   validate_surname,
+      //   validate_password
+      // );
+    } catch (err) {
+      return respuesta.status(200).send({
+        message: 'Faltan datos por enviar',
+      });
+    }
 
     if (
       validate_name &&
@@ -95,9 +101,15 @@ const controller = {
     const params = peticion.body;
 
     // Validar datos
-    const validate_email =
-      !validator.isEmpty(params.email) && validator.isEmail(params.email);
-    const validate_password = !validator.isEmpty(params.password);
+    try {
+      const validate_email =
+        !validator.isEmpty(params.email) && validator.isEmail(params.email);
+      const validate_password = !validator.isEmpty(params.password);
+    } catch (err) {
+      return respuesta.status(200).send({
+        message: 'Faltan datos por enviar',
+      });
+    }
 
     if (!validate_email || !validate_password) {
       return respuesta.status(200).send({
@@ -146,6 +158,67 @@ const controller = {
         }
       });
     });
+  },
+
+  update: function (peticion, respuesta) {
+    // Recoger datos del usuario
+    const params = peticion.body;
+    // Validar datos
+    try {
+      const validate_name = !validator.isEmpty(params.name);
+      const validate_surname = !validator.isEmpty(params.surname);
+      const validate_email =
+        !validator.isEmpty(params.email) && validator.isEmail(params.email);
+    } catch (err) {
+      return respuesta.status(200).send({
+        message: 'Faltan datos por enviar',
+      });
+    }
+    // Eliminar propiedades inecesarias
+    delete params.password;
+    // Buscar y actualizar documento
+    const userId = peticion.user.sub;
+
+    // Comprobar si el email es unico
+    if (peticion.user.email != params.email) {
+      User.findOne({ email: params.email.toLowerCase() }, (err, user) => {
+        if (err) {
+          return respuesta.status(500).send({
+            message: 'Error al intentar identificarse',
+          });
+        }
+        if (user && user.email == params.email) {
+          return respuesta.status(200).send({
+            message: 'El email no puede ser modificado',
+          });
+        }
+      });
+    } else {
+      User.findOneAndUpdate(
+        { _id: userId },
+        params,
+        { new: true },
+        (err, userUpdated) => {
+          if (err) {
+            return respuesta.status(500).send({
+              status: 'error',
+              message: 'Error al actualizar usuario',
+            });
+          }
+          if (!userUpdated) {
+            return respuesta.status(200).send({
+              status: 'error',
+              message: 'No se ha actualizado el usuario',
+            });
+          }
+          // Devolver respuesta
+          return respuesta.status(200).send({
+            status: 'success',
+            user: userUpdated,
+          });
+        }
+      );
+    }
   },
 };
 module.exports = controller;

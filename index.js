@@ -11,7 +11,7 @@ mongoose.Promise = global.Promise;
 mongoose
   .connect(
     'mongodb+srv://eagleangel:Maam15908400@cluster0.0x11k.mongodb.net/eagleangel1?retryWrites=true&w=majority',
-    { useNewUrlParser: true, useUnifiedTopology: true }
+    { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false }
   )
   .then(() => {
     console.log('Coneccion realizada');
