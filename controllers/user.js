@@ -1,6 +1,8 @@
 'use strict';
 const validator = require('validator');
 const bcrypt = require('bcrypt-nodejs');
+const fs = require('fs');
+const path = require('path');
 const User = require('../models/user');
 const jwt = require('../services/jwt');
 const controller = {
@@ -219,6 +221,113 @@ const controller = {
         }
       );
     }
+  },
+  uploadAvatar: function (peticion, respuesta) {
+    // Configurar el modulo multiparty (md) para habilitar subida de imagenes routes/users.js
+
+    // Recoger el fichero de la peticion
+    var file_name = 'Avatar no subido...';
+
+    if (!peticion.files) {
+      return respuesta.status(404).send({
+        status: 'error',
+        message: file_name,
+      });
+    }
+    // Conseguir el nombre y la extension del archivo subido
+    const file_path = peticion.files.file0.path;
+    const file_split = file_path.split('/');
+    // Advertencia ** en Windows seria file_path.split('\\');
+    // Nombre del archivo
+    var file_name = file_split[2];
+    // Extension del archivo
+    const ext_split = file_name.split('.');
+    const file_ext = ext_split[1];
+
+    // Comprobar extension (solo imagenes), si no es valida borrar fichero subido
+    if (
+      file_ext != 'png' &&
+      file_ext != 'jpg' &&
+      file_ext != 'jpeg' &&
+      file_ext != 'gif'
+    ) {
+      fs.unlink(file_path, (err) => {
+        return respuesta.status(200).send({
+          status: 'error',
+          message: 'La extension del archivo no es valida',
+          file: file_ext,
+        });
+      });
+    } else {
+      // CSacar el id de usuario identificado
+      const userId = peticion.user.sub;
+
+      // Buscar y actualizar el documento de la BD
+      User.findOneAndUpdate(
+        { _id: userId },
+        { image: file_name },
+        { new: true },
+        (err, userUpdated) => {
+          if (err || !userUpdated) {
+            return respuesta.status(500).send({
+              status: 'error',
+              message: 'Error al guardar el usuario',
+            });
+          }
+
+          // Devolver respuesta
+          return respuesta.status(200).send({
+            status: 'success',
+            user: userUpdated,
+          });
+        }
+      );
+    }
+  },
+  avatar: function (peticion, respuesta) {
+    const fileName = peticion.params.fileName;
+    const pathFile = './uploads/users/' + fileName;
+
+    fs.exists(pathFile, (exists) => {
+      if (exists) {
+        return respuesta.sendFile(path.resolve(pathFile));
+      } else {
+        return respuesta.status(404).send({
+          message: 'La imagen no existe',
+        });
+      }
+    });
+  },
+
+  // Sacar usuarios de la base de datos o uno en concreto (por si usamos en el frontend)
+  getUsers: function (peticion, respuesta) {
+    User.find().exec((err, users) => {
+      if (err || !users) {
+        return respuesta.status(404).send({
+          status: 'error',
+          message: 'No hay usuarios que mostrar',
+        });
+      }
+      return respuesta.status(200).send({
+        status: 'success',
+        users,
+      });
+    });
+  },
+  getUser: function (peticion, respuesta) {
+    const userId = peticion.params.userId;
+    User.findById(userId).exec((err, user) => {
+      if (err || !user) {
+        return respuesta.status(404).send({
+          status: 'error',
+          message: 'No existe el usuario',
+        });
+      }
+      return respuesta.status(200).send({
+        status: 'success',
+        user,
+      });
+    });
   },
 };
 module.exports = controller;
