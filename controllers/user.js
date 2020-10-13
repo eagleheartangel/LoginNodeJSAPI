@@ -21,11 +21,11 @@ const controller = {
     const params = peticion.body;
     // Validar los datos
     try {
-      const validate_name = !validator.isEmpty(params.name);
-      const validate_surname = !validator.isEmpty(params.surname);
-      const validate_email =
+      var validate_name = !validator.isEmpty(params.name);
+      var validate_surname = !validator.isEmpty(params.surname);
+      var validate_email =
         !validator.isEmpty(params.email) && validator.isEmail(params.email);
-      const validate_password = !validator.isEmpty(params.password);
+      var validate_password = !validator.isEmpty(params.password);
 
       // console.log(
       //   validate_email,
