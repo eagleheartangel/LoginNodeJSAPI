@@ -104,9 +104,9 @@ const controller = {
 
     // Validar datos
     try {
-      const validate_email =
+      var validate_email =
         !validator.isEmpty(params.email) && validator.isEmail(params.email);
-      const validate_password = !validator.isEmpty(params.password);
+      var validate_password = !validator.isEmpty(params.password);
     } catch (err) {
       return respuesta.status(200).send({
         message: 'Faltan datos por enviar',
@@ -167,9 +167,9 @@ const controller = {
     const params = peticion.body;
     // Validar datos
     try {
-      const validate_name = !validator.isEmpty(params.name);
-      const validate_surname = !validator.isEmpty(params.surname);
-      const validate_email =
+      var validate_name = !validator.isEmpty(params.name);
+      var validate_surname = !validator.isEmpty(params.surname);
+      var validate_email =
         !validator.isEmpty(params.email) && validator.isEmail(params.email);
     } catch (err) {
       return respuesta.status(200).send({
