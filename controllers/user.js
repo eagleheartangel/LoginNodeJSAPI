@@ -193,6 +193,31 @@ const controller = {
           return respuesta.status(200).send({
             message: 'El email no puede ser modificado',
           });
+        } else {
+          User.findOneAndUpdate(
+            { _id: userId },
+            params,
+            { new: true },
+            (err, userUpdated) => {
+              if (err) {
+                return respuesta.status(500).send({
+                  status: 'error',
+                  message: 'Error al actualizar usuario',
+                });
+              }
+              if (!userUpdated) {
+                return respuesta.status(200).send({
+                  status: 'error',
+                  message: 'No se ha actualizado el usuario',
+                });
+              }
+              // Devolver respuesta
+              return respuesta.status(200).send({
+                status: 'success',
+                user: userUpdated,
+              });
+            }
+          );
         }
       });
     } else {
